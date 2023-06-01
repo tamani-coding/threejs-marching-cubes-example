@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
-import { MarchingCubes } from 'three/examples/jsm/objects/MarchingCubes.js';
 import { ToonShader1, ToonShader2, ToonShaderHatching, ToonShaderDotted } from 'three/examples/jsm/shaders/ToonShader.js';
+import { MarchingCubes } from './MarchingCubes';
 
 let container;
 
