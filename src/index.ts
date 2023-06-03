@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
 import { ToonShader1, ToonShader2, ToonShaderHatching, ToonShaderDotted } from 'three/examples/jsm/shaders/ToonShader.js';
 import { MarchingCubes } from './MarchingCubes';
+import { BlobVolume, MarchingCubes2 } from './MarchingCubes2';
 
 let container;
 
@@ -18,6 +19,9 @@ let container;
 
 		let time = 0;
 
+		let marchingCubes2;
+		const blobs: BlobVolume[] = [];
+
 		const clock = new THREE.Clock();
 
 		init();
@@ -30,7 +34,7 @@ let container;
 			// CAMERA
 
 			camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-			camera.position.set( - 500, 500, 1500 );
+			camera.position.set( 0, 500, 1500 );
 
 			// SCENE
 
@@ -56,6 +60,10 @@ let container;
 			current_material = 'matte';
 
 			// MARCHING CUBES
+
+			blobs.push(new BlobVolume(new THREE.Vector3(0, 0, 0), 100));
+			marchingCubes2 = new MarchingCubes2(scene, 15, 1000);
+			blobs.forEach(blob => marchingCubes2.addBlob(blob));
 
 			resolution = 28;
 
@@ -297,22 +305,30 @@ let container;
 
 			time += delta * effectController.speed * 0.5;
 
+			for (const blob of blobs) {
+				blob.position.x = Math.sin(time) * 100;
+				blob.position.y = Math.cos(time) * 100;
+			}
+
+			// marching cubes 2
+			marchingCubes2.updateAndRender(delta);
+
 			// marching cubes
 
-			if ( effectController.resolution !== resolution ) {
+			// if ( effectController.resolution !== resolution ) {
 
-				resolution = effectController.resolution;
-				effect.init( Math.floor( resolution ) );
+			// 	resolution = effectController.resolution;
+			// 	effect.init( Math.floor( resolution ) );
 
-			}
+			// }
 
-			if ( effectController.isolation !== effect.isolation ) {
+			// if ( effectController.isolation !== effect.isolation ) {
 
-				effect.isolation = effectController.isolation;
+			// 	effect.isolation = effectController.isolation;
 
-			}
+			// }
 
-			updateCubes( effect, time, effectController.numBlobs, effectController.floor, effectController.wallx, effectController.wallz );
+			// updateCubes( effect, time, effectController.numBlobs, effectController.floor, effectController.wallx, effectController.wallz );
 
 			// render
 
