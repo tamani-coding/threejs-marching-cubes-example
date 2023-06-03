@@ -30,15 +30,15 @@ export class Cube {
         this.vertices.push(...vertices);
     }
 
-    vertexInterp(index0: number, index1: number): THREE.Vector3 {
-        const result = new THREE.Vector3();
-
+    vertexInterp(index0: number, index1: number, volume: Volume): THREE.Vector3 {
         const v0 = this.vertices[index0];
         const v1 = this.vertices[index1];
-
-        const tmp = v1.clone().sub(v0).multiplyScalar(0.5);
-
-        return result.copy(v0).add(tmp);
+        
+        return volume.intersectionPoint(v0, v1);
+        
+        // const result = new THREE.Vector3();
+        // const tmp = v1.clone().sub(v0).multiplyScalar(0.5);
+        // return result.copy(v0).add(tmp);
     }
 }
 
@@ -120,50 +120,50 @@ export class MarchingCubes2 {
         return cubeIndex;
     }
 
-    intersectionPoints(cube: Cube, edges: number): Map<number,EdgeIntersection> {
+    intersectionPoints(cube: Cube, edges: number, volume: Volume): Map<number,EdgeIntersection> {
         // map of edge index to intersection point
         const points: Map<number,EdgeIntersection> = new Map<number,EdgeIntersection>();
 
         // bottom part of cube
         if (edges & 1) {
-            points.set(0, new EdgeIntersection(cube.vertexInterp(0, 1)));
+            points.set(0, new EdgeIntersection(cube.vertexInterp(0, 1, volume)));
         }
         if (edges & 2) {
-            points.set(1, new EdgeIntersection(cube.vertexInterp(1, 2)));
+            points.set(1, new EdgeIntersection(cube.vertexInterp(1, 2, volume)));
         }
         if (edges & 4) {
-            points.set(2, new EdgeIntersection(cube.vertexInterp(2, 3)));
+            points.set(2, new EdgeIntersection(cube.vertexInterp(2, 3, volume)));
         }
         if (edges & 8) {
-            points.set(3, new EdgeIntersection(cube.vertexInterp(3, 0)));
+            points.set(3, new EdgeIntersection(cube.vertexInterp(3, 0, volume)));
         }
 
         // top part of cube
         if (edges & 16) {
-            points.set(4, new EdgeIntersection(cube.vertexInterp(4, 5)));
+            points.set(4, new EdgeIntersection(cube.vertexInterp(4, 5, volume)));
         }
         if (edges & 32) {
-            points.set(5, new EdgeIntersection(cube.vertexInterp(5, 6)));
+            points.set(5, new EdgeIntersection(cube.vertexInterp(5, 6, volume)));
         }
         if (edges & 64) {
-            points.set(6, new EdgeIntersection(cube.vertexInterp(6, 7)));
+            points.set(6, new EdgeIntersection(cube.vertexInterp(6, 7, volume)));
         }
         if (edges & 128) {
-            points.set(7, new EdgeIntersection(cube.vertexInterp(7, 4)));
+            points.set(7, new EdgeIntersection(cube.vertexInterp(7, 4, volume)));
         }
 
         // vertical lines
         if (edges & 256) {
-            points.set(8, new EdgeIntersection(cube.vertexInterp(0, 4)));
+            points.set(8, new EdgeIntersection(cube.vertexInterp(0, 4, volume)));
         }
         if (edges & 512) {
-            points.set(9, new EdgeIntersection(cube.vertexInterp(1, 5)));
+            points.set(9, new EdgeIntersection(cube.vertexInterp(1, 5, volume)));
         }
         if (edges & 1024) {
-            points.set(10, new EdgeIntersection(cube.vertexInterp(2, 6)));
+            points.set(10, new EdgeIntersection(cube.vertexInterp(2, 6, volume)));
         }
         if (edges & 2048) {
-            points.set(11, new EdgeIntersection(cube.vertexInterp(3, 7)));
+            points.set(11, new EdgeIntersection(cube.vertexInterp(3, 7, volume)));
         }
 
         return points;
@@ -181,7 +181,7 @@ export class MarchingCubes2 {
                     // edges is a bitfield indicating which edges are crossed by the volume
                     const edges = edgeTable[cubeIndex];
                     // determine which edges are intersected by the volume and the intersection points
-                    const intersectionPointsMap = this.intersectionPoints(cube, edges);
+                    const intersectionPointsMap = this.intersectionPoints(cube, edges, volume);
                     intersectPoints = intersectPoints.concat( Array.from(intersectionPointsMap.values()) );
 
                     // determine the triangles to render using triTable
