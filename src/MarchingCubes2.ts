@@ -115,8 +115,7 @@ export class MeshRenderer {
     constructor(scene: THREE.Scene) {
         this.meshBufferGeometry = new THREE.BufferGeometry();
         this.meshBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( [], 3 ) );
-        const meshMaterial = new THREE.MeshPhysicalMaterial( { color: 0xffffff } );
-        const mesh = new THREE.Mesh( this.meshBufferGeometry, meshMaterial );
+        const mesh = new THREE.Mesh( this.meshBufferGeometry, new THREE.MeshBasicMaterial( { color: 0xffffff } ) );
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         scene.add( mesh );
@@ -194,7 +193,7 @@ export class MarchingCubes2 {
         this.scene.add(gridHelperBack);
     }
 
-    addBlob(volume: Volume) {   
+    addVolume(volume: Volume) {   
         this.volumes.push(volume);
     }
 

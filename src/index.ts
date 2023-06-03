@@ -62,8 +62,9 @@ let container;
 			// MARCHING CUBES
 
 			blobs.push(new BlobVolume(new THREE.Vector3(0, 0, 0), 150));
-			marchingCubes2 = new MarchingCubes2(scene, 15, 1000);
-			blobs.forEach(blob => marchingCubes2.addBlob(blob));
+			blobs.push(new BlobVolume(new THREE.Vector3(0, 0, 0), 150));
+			marchingCubes2 = new MarchingCubes2(scene, 35, 1000);
+			blobs.forEach(blob => marchingCubes2.addVolume(blob));
 
 			resolution = 28;
 
@@ -305,10 +306,12 @@ let container;
 
 			time += delta * effectController.speed * 0.5;
 
-			for (const blob of blobs) {
-				blob.position.x = Math.sin(time) * 100;
-				blob.position.y = Math.cos(time) * 100;
-			}
+			const blob1 = blobs[0];
+			blob1.position.x = Math.sin(time) * 200;
+			blob1.position.y = Math.cos(time) * 200;
+			const blob2 = blobs[1];
+			blob2.position.x = Math.cos(time) * 200;
+			blob2.position.y = Math.sin(time) * 200;
 
 			// marching cubes 2
 			marchingCubes2.updateAndRender(delta);
