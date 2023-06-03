@@ -18,7 +18,7 @@ export class SphereVolume implements Volume {
 
     isPointWithin(position: THREE.Vector3): boolean {
         const distance = this.position.distanceTo(position);
-        return distance < this.radius;
+        return distance <= this.radius;
     }
     
 }
