@@ -3,7 +3,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
 import { ToonShader1, ToonShader2, ToonShaderHatching, ToonShaderDotted } from 'three/examples/jsm/shaders/ToonShader.js';
 import { MarchingCubes } from './MarchingCubes';
-import { BlobVolume, MarchingCubes2 } from './MarchingCubes2';
+import { MarchingCubes2 } from './MarchingCubes2';
+import { BlobVolume } from './Volumes';
 
 let container;
 
