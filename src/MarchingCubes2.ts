@@ -140,7 +140,7 @@ export class MarchingCubes2 {
     scene: THREE.Scene;
     resolutions: number;
     scale: number;
-    // boxGeometries: THREE.Mesh[] = [];
+    
     cubes: CustomCube[] = [];
     volumes: Volume[] = [];
 
@@ -162,21 +162,12 @@ export class MarchingCubes2 {
         const max = this.resolutions * this.resolutions * this.resolutions;
         const size = 1 / this.resolutions * this.scale;
         for (let i = 0; i < max; i++) {
-            // const box = new THREE.BoxGeometry(size, size, size);
-            // const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            // material.wireframe = true;
-            // const mesh = new THREE.Mesh(box, material);
-            // mesh.position.x = (i % this.resolutions) * size - this.scale / 2 + size / 2;
-            // mesh.position.y = Math.floor(i / this.resolutions) % this.resolutions * size - this.scale / 2 + size / 2;
-            // mesh.position.z = Math.floor(i / this.resolutions / this.resolutions) * size - this.scale / 2 + size / 2;
-            // this.boxGeometries.push(mesh);
             const position = new THREE.Vector3(
                 (i % this.resolutions) * size - this.scale / 2 + size / 2, 
                 Math.floor(i / this.resolutions) % this.resolutions * size - this.scale / 2 + size / 2, 
                 Math.floor(i / this.resolutions / this.resolutions) * size - this.scale / 2 + size / 2);
             this.cubes.push(new CustomCube(position, size));
         }
-        // this.scene.add(...this.boxGeometries);
     }
 
     initGridHelper() {
