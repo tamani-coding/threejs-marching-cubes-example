@@ -115,7 +115,7 @@ export class MeshRenderer {
     constructor(scene: THREE.Scene) {
         this.meshBufferGeometry = new THREE.BufferGeometry();
         this.meshBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( [], 3 ) );
-        const mesh = new THREE.Mesh( this.meshBufferGeometry, new THREE.MeshBasicMaterial( { color: 0xffffff } ) );
+        const mesh = new THREE.Mesh( this.meshBufferGeometry, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         scene.add( mesh );
@@ -130,6 +130,9 @@ export class MeshRenderer {
         
             vertices.push( x, y, z );
         }
+
+        const attributes = new THREE.Float32BufferAttribute( vertices, 3 );
+        attributes.setUsage( THREE.DynamicDrawUsage );
         this.meshBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
         this.meshBufferGeometry.computeVertexNormals();
     }
