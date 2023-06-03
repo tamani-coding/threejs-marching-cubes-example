@@ -18,14 +18,6 @@ export class CustomCube {
     initVertices() {
         const halfSize = this.size / 2;
         const vertices = [
-            // new THREE.Vector3(-halfSize, -halfSize, -halfSize).add(this.position), 
-            // new THREE.Vector3(halfSize, -halfSize, -halfSize).add(this.position),
-            // new THREE.Vector3(halfSize, halfSize, -halfSize).add(this.position),
-            // new THREE.Vector3(-halfSize, halfSize, -halfSize).add(this.position),
-            // new THREE.Vector3(-halfSize, -halfSize, halfSize).add(this.position),
-            // new THREE.Vector3(halfSize, -halfSize, halfSize).add(this.position),
-            // new THREE.Vector3(halfSize, halfSize, halfSize).add(this.position),
-            // new THREE.Vector3(-halfSize, halfSize, halfSize).add(this.position),
             new THREE.Vector3(-halfSize, -halfSize, -halfSize).add(this.position), // 0
             new THREE.Vector3(halfSize, -halfSize, -halfSize).add(this.position), // 1
             new THREE.Vector3(halfSize, -halfSize, halfSize).add(this.position), // 2
