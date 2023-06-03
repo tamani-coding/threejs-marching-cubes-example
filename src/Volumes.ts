@@ -6,7 +6,7 @@ export class Volume {
 
 }
 
-export class BlobVolume implements Volume {
+export class SphereVolume implements Volume {
 
     position: THREE.Vector3;
     radius: number;

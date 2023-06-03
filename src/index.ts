@@ -4,7 +4,7 @@ import { GUI } from 'dat.gui';
 import { ToonShader1, ToonShader2, ToonShaderHatching, ToonShaderDotted } from 'three/examples/jsm/shaders/ToonShader.js';
 import { MarchingCubes } from './MarchingCubes';
 import { MarchingCubes2 } from './MarchingCubes2';
-import { BlobVolume } from './Volumes';
+import { SphereVolume } from './Volumes';
 
 let container;
 
@@ -21,7 +21,7 @@ let container;
 		let time = 0;
 
 		let marchingCubes2;
-		const blobs: BlobVolume[] = [];
+		const spheres: SphereVolume[] = [];
 
 		const clock = new THREE.Clock();
 
@@ -62,10 +62,10 @@ let container;
 
 			// MARCHING CUBES
 
-			blobs.push(new BlobVolume(new THREE.Vector3(0, 0, 0), 150));
-			blobs.push(new BlobVolume(new THREE.Vector3(0, 0, 0), 150));
+			spheres.push(new SphereVolume(new THREE.Vector3(0, 0, 0), 150));
+			spheres.push(new SphereVolume(new THREE.Vector3(0, 0, 0), 150));
 			marchingCubes2 = new MarchingCubes2(scene, 35, 1000);
-			blobs.forEach(blob => marchingCubes2.addVolume(blob));
+			spheres.forEach(blob => marchingCubes2.addVolume(blob));
 
 			resolution = 28;
 
@@ -307,10 +307,10 @@ let container;
 
 			time += delta * effectController.speed * 0.5;
 
-			const blob1 = blobs[0];
+			const blob1 = spheres[0];
 			blob1.position.x = Math.sin(time) * 200;
 			blob1.position.y = Math.cos(time) * 200;
-			const blob2 = blobs[1];
+			const blob2 = spheres[1];
 			blob2.position.x = Math.cos(time) * 200;
 			blob2.position.y = Math.sin(time) * 200;
 
