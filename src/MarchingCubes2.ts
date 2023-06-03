@@ -3,7 +3,7 @@ import { Volume } from './Volumes';
 import { MeshRenderer, PointsMeshRenderer } from './VolumeRenderers';
 import { edgeTable, triTable } from './MarchingCubes';
 
-export class CustomCube {
+export class Cube {
 
     position: THREE.Vector3;
     size: number;
@@ -58,7 +58,7 @@ export class MarchingCubes2 {
     resolutions: number;
     scale: number;
     
-    cubes: CustomCube[] = [];
+    cubes: Cube[] = [];
     volumes: Volume[] = [];
 
     pointsMeshRenderer: PointsMeshRenderer;
@@ -83,7 +83,7 @@ export class MarchingCubes2 {
                 (i % this.resolutions) * size - this.scale / 2 + size / 2, 
                 Math.floor(i / this.resolutions) % this.resolutions * size - this.scale / 2 + size / 2, 
                 Math.floor(i / this.resolutions / this.resolutions) * size - this.scale / 2 + size / 2);
-            this.cubes.push(new CustomCube(position, size));
+            this.cubes.push(new Cube(position, size));
         }
     }
 
@@ -105,7 +105,7 @@ export class MarchingCubes2 {
         this.volumes.push(volume);
     }
 
-    cubeIndex(cube: CustomCube, volume: Volume): number {
+    cubeIndex(cube: Cube, volume: Volume): number {
         let cubeIndex = 0;
 
         if (volume.isPointWithin(cube.vertices[0])) cubeIndex |= 1;
@@ -120,7 +120,7 @@ export class MarchingCubes2 {
         return cubeIndex;
     }
 
-    intersectionPoints(cube: CustomCube, edges: number): Map<number,EdgeIntersection> {
+    intersectionPoints(cube: Cube, edges: number): Map<number,EdgeIntersection> {
         // map of edge index to intersection point
         const points: Map<number,EdgeIntersection> = new Map<number,EdgeIntersection>();
 
