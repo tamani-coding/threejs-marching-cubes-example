@@ -61,7 +61,7 @@ let container;
 
 			// MARCHING CUBES
 
-			blobs.push(new BlobVolume(new THREE.Vector3(0, 0, 0), 100));
+			blobs.push(new BlobVolume(new THREE.Vector3(0, 0, 0), 150));
 			marchingCubes2 = new MarchingCubes2(scene, 15, 1000);
 			blobs.forEach(blob => marchingCubes2.addBlob(blob));
 

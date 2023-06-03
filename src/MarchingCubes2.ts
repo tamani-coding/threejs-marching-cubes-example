@@ -74,14 +74,66 @@ export class CustomCube {
 
 export class EdgeIntersection {
 
-    edgeIndex: number;
     point: THREE.Vector3;
 
-    constructor(edgeIndex: number, point: THREE.Vector3) {
-        this.edgeIndex = edgeIndex;
+    constructor(point: THREE.Vector3) {
         this.point = point;
     }
 
+}
+
+export class PointsMeshRenderer {
+
+    pointsBufferGeometry: THREE.BufferGeometry;
+
+    constructor(scene: THREE.Scene) {
+        this.pointsBufferGeometry = new THREE.BufferGeometry();
+        this.pointsBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( [], 3 ) );
+        const pointsMaterial = new THREE.PointsMaterial( { color: 0xffffff } );
+        const points = new THREE.Points( this.pointsBufferGeometry, pointsMaterial );
+        scene.add( points );
+    }
+
+    updatePoints(intersectPoints: EdgeIntersection[]) {
+        const vertices = [];
+        for (const intersectPoint of intersectPoints) {
+            const x = intersectPoint.point.x;
+            const y = intersectPoint.point.y;
+            const z = intersectPoint.point.z;
+        
+            vertices.push( x, y, z );
+        }
+        this.pointsBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+    }
+
+}
+
+export class MeshRenderer {
+            
+    meshBufferGeometry: THREE.BufferGeometry;
+
+    constructor(scene: THREE.Scene) {
+        this.meshBufferGeometry = new THREE.BufferGeometry();
+        this.meshBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( [], 3 ) );
+        const meshMaterial = new THREE.MeshPhysicalMaterial( { color: 0xffffff } );
+        const mesh = new THREE.Mesh( this.meshBufferGeometry, meshMaterial );
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        scene.add( mesh );
+    }
+
+    updateMesh(trianglePoints: THREE.Vector3[]) {
+        const vertices = [];
+        for (const intersectPoint of trianglePoints) {
+            const x = intersectPoint.x;
+            const y = intersectPoint.y;
+            const z = intersectPoint.z;
+        
+            vertices.push( x, y, z );
+        }
+        this.meshBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+        this.meshBufferGeometry.computeVertexNormals();
+    }
 }
 
 export class MarchingCubes2 {
@@ -93,8 +145,8 @@ export class MarchingCubes2 {
     cubes: CustomCube[] = [];
     volumes: Volume[] = [];
 
-    points: THREE.Points;
-    bufferGeometry: THREE.BufferGeometry;
+    pointsMeshRenderer: PointsMeshRenderer;
+    meshRenderer: MeshRenderer;
 
     constructor(scene: THREE.Scene, resolutions: number, scale: number) {
         this.scene = scene;
@@ -103,11 +155,8 @@ export class MarchingCubes2 {
         this.initBoxGeometries();
         this.initGridHelper();
 
-        this.bufferGeometry = new THREE.BufferGeometry();
-        this.bufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( [], 3 ) );
-        const material = new THREE.PointsMaterial( { color: 0xffffff } );
-        this.points = new THREE.Points( this.bufferGeometry, material );
-        scene.add( this.points );
+        this.pointsMeshRenderer = new PointsMeshRenderer(scene);
+        this.meshRenderer = new MeshRenderer(scene);
     }
 
     initBoxGeometries() {
@@ -164,88 +213,88 @@ export class MarchingCubes2 {
         return cubeIndex;
     }
 
-    intersectionPoints(cube: CustomCube, edges: number): EdgeIntersection[] {
-        const points: EdgeIntersection[] = [];
+    intersectionPoints(cube: CustomCube, edges: number): Map<number,EdgeIntersection> {
+        // map of edge index to intersection point
+        const points: Map<number,EdgeIntersection> = new Map<number,EdgeIntersection>();
 
         // bottom part of cube
         if (edges & 1) {
-            points.push(new EdgeIntersection(0, cube.vertexInterp(0, 1)));
+            points.set(0, new EdgeIntersection(cube.vertexInterp(0, 1)));
         }
         if (edges & 2) {
-            points.push(new EdgeIntersection(1, cube.vertexInterp(1, 2)));
+            points.set(1, new EdgeIntersection(cube.vertexInterp(1, 2)));
         }
         if (edges & 4) {
-            points.push(new EdgeIntersection(2, cube.vertexInterp(2, 3)));
+            points.set(2, new EdgeIntersection(cube.vertexInterp(2, 3)));
         }
         if (edges & 8) {
-            points.push(new EdgeIntersection(3, cube.vertexInterp(3, 0)));
+            points.set(3, new EdgeIntersection(cube.vertexInterp(3, 0)));
         }
 
         // top part of cube
         if (edges & 16) {
-            points.push(new EdgeIntersection(4,cube.vertexInterp(4, 5)));
+            points.set(4, new EdgeIntersection(cube.vertexInterp(4, 5)));
         }
         if (edges & 32) {
-            points.push(new EdgeIntersection(5, cube.vertexInterp(5, 6)));
+            points.set(5, new EdgeIntersection(cube.vertexInterp(5, 6)));
         }
         if (edges & 64) {
-            points.push(new EdgeIntersection(6, cube.vertexInterp(6, 7)));
+            points.set(6, new EdgeIntersection(cube.vertexInterp(6, 7)));
         }
         if (edges & 128) {
-            points.push(new EdgeIntersection(7, cube.vertexInterp(7, 4)));
+            points.set(7, new EdgeIntersection(cube.vertexInterp(7, 4)));
         }
 
         // vertical lines
         if (edges & 256) {
-            points.push(new EdgeIntersection(8, cube.vertexInterp(0, 4)));
+            points.set(8, new EdgeIntersection(cube.vertexInterp(0, 4)));
         }
         if (edges & 512) {
-            points.push(new EdgeIntersection(9, cube.vertexInterp(1, 5)));
+            points.set(9, new EdgeIntersection(cube.vertexInterp(1, 5)));
         }
         if (edges & 1024) {
-            points.push(new EdgeIntersection(10, cube.vertexInterp(2, 6)));
+            points.set(10, new EdgeIntersection(cube.vertexInterp(2, 6)));
         }
         if (edges & 2048) {
-            points.push(new EdgeIntersection(11, cube.vertexInterp(3, 7)));
+            points.set(11, new EdgeIntersection(cube.vertexInterp(3, 7)));
         }
 
         return points;
     }
 
-    updatePoints(intersectPoints: EdgeIntersection[]) {
-        const vertices = [];
-        for (const intersectPoint of intersectPoints) {
-            const x = intersectPoint.point.x;
-            const y = intersectPoint.point.y;
-            const z = intersectPoint.point.z;
-        
-            vertices.push( x, y, z );
-        }
-        this.bufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-    }
-
     updateAndRender(delta: number) {
         let intersectPoints: EdgeIntersection[] = [];
+        let trianglePoints: THREE.Vector3[] = [];
 
         for(const cube of this.cubes) {
             for(const volume of this.volumes) {
-                const cubeIndex = this.cubeIndex(cube, volume);
+                // determine which cube vertices are within the volume
+                let cubeIndex = this.cubeIndex(cube, volume);
                 if (cubeIndex > 0) {
-                    // edges is a bitfield indicating which edges are crossed by the surface
+                    // edges is a bitfield indicating which edges are crossed by the volume
                     const edges = edgeTable[cubeIndex];
+                    // determine which edges are intersected by the volume and the intersection points
+                    const intersectionPointsMap = this.intersectionPoints(cube, edges);
+                    intersectPoints = intersectPoints.concat( Array.from(intersectionPointsMap.values()) );
 
-                    intersectPoints = intersectPoints.concat( this.intersectionPoints(cube, edges));
-
-
-                    const trianglesIndex = cubeIndex << 4; // re-purpose cubeindex into an offset into triTable
-                    const triangles = triTable[trianglesIndex];
-
-                    // console.log(edges);
+                    // determine the triangles to render using triTable
+                    cubeIndex <<= 4; // re-purpose cubeindex into an offset into triTable
+                    let i = 0;
+                    let edgeIndex = 0;
+                    while( ( edgeIndex = triTable[cubeIndex + i] ) != -1) {
+                        const intersectPoint = intersectionPointsMap.get(edgeIndex);
+                        if (intersectPoint) {
+                            trianglePoints.push(intersectPoint.point);
+                        }
+                        i++;
+                    }
+                    
                 }
             }
         }
 
-        this.updatePoints(intersectPoints);
+        this.pointsMeshRenderer.updatePoints(intersectPoints);
+        this.meshRenderer.updateMesh(trianglePoints);
     }
 }
 
