@@ -1,50 +1,7 @@
 import * as THREE from 'three';
-import { MeshRenderer, PointsRenderer } from './VolumeRenderers';
+import { MeshRenderer } from './VolumeRenderers';
 import { edgeTable, triTable } from './LookupTables';
 
-export class Cube {
-
-    position: THREE.Vector3;
-    size: number;
-    vertices: THREE.Vector3[] = [];
-    values: number[] = [0,0,0,0,0,0,0,0];
-
-    constructor(position: THREE.Vector3, size: number) {
-        this.position = position;
-        this.size = size;
-        this.initVertices();
-    }
-
-    initVertices() {
-        const halfSize = this.size / 2;
-        const vertices = [
-            new THREE.Vector3(-halfSize, -halfSize, -halfSize).add(this.position), // 0
-            new THREE.Vector3(halfSize, -halfSize, -halfSize).add(this.position), // 1
-            new THREE.Vector3(halfSize, -halfSize, halfSize).add(this.position), // 2
-            new THREE.Vector3(-halfSize, -halfSize, halfSize).add(this.position), // 3
-            new THREE.Vector3(-halfSize, halfSize, -halfSize).add(this.position), // 4
-            new THREE.Vector3(halfSize, halfSize, -halfSize).add(this.position), // 5
-            new THREE.Vector3(halfSize, halfSize, halfSize).add(this.position), // 6
-            new THREE.Vector3(-halfSize, halfSize, halfSize).add(this.position), // 7
-        ];
-        this.vertices.push(...vertices);
-    }
-
-    vertexInterp(index0: number, index1: number, isolevel: number): THREE.Vector3 {
-        const mu = (isolevel - this.values[index0]) / (this.values[index1] - this.values[index0]);
-        return this.vertices[index0].clone().lerp(this.vertices[index1], mu);
-    }
-}
-
-export class EdgeIntersection {
-
-    point: THREE.Vector3;
-
-    constructor(point: THREE.Vector3) {
-        this.point = point;
-    }
-
-}
 
 export class MetaBall {
 
@@ -61,48 +18,50 @@ export class MetaBall {
 export class MarchingCubes2 {
 
     scene: THREE.Scene;
-    resolutions: number;
+    resolution: number;
     scale: number;
     
-    cubes: Cube[] = [];
     metaBalls: MetaBall[] = [];
 
     isolevel = 0.5;
 
-    pointsMeshRenderer: PointsRenderer;
     meshRenderer: MeshRenderer;
 
-    constructor(scene: THREE.Scene, resolutions: number, scale: number, isolevel: number) {
+    values: number[] = [];
+    points: THREE.Vector3[] = [];
+
+    constructor(scene: THREE.Scene, resolution: number, scale: number, isolevel: number) {
         this.scene = scene;
-        this.resolutions = resolutions;
+        this.resolution = resolution;
         this.scale = scale;
         this.isolevel = isolevel;
-        this.initCubes();
         this.initGridHelper();
 
-        this.pointsMeshRenderer = new PointsRenderer(scene);
+        // generate the list of 3D points
+        for (var k = 0; k < resolution; k++)
+        for (var j = 0; j < resolution; j++)
+        for (var i = 0; i < resolution; i++)
+        {
+            var x = -(scale/2) + scale * i / (resolution - 1);
+            var y = -(scale/2) + scale * j / (resolution - 1);
+            var z = -(scale/2) + scale * k / (resolution - 1);
+            this.points.push( new THREE.Vector3(x,y,z) );
+        }
+        // generate values array for points
+        const total = resolution * resolution * resolution;
+        for (var i = 0; i < total; i++) 
+		    this.values[i] = 0;
+
         this.meshRenderer = new MeshRenderer(scene);
     }
 
-    initCubes() {
-        const max = this.resolutions * this.resolutions * this.resolutions;
-        const size = 1 / this.resolutions * this.scale;
-        for (let i = 0; i < max; i++) {
-            const position = new THREE.Vector3(
-                (i % this.resolutions) * size - this.scale / 2 + size / 2, 
-                Math.floor(i / this.resolutions) % this.resolutions * size - this.scale / 2 + size / 2, 
-                Math.floor(i / this.resolutions / this.resolutions) * size - this.scale / 2 + size / 2);
-            this.cubes.push(new Cube(position, size));
-        }
-    }
-
     initGridHelper() {
-        const gridHelperBottom = new THREE.GridHelper(this.scale, this.resolutions);
+        const gridHelperBottom = new THREE.GridHelper(this.scale, this.resolution);
         gridHelperBottom.position.y = -this.scale / 2;
-        const gridHelperLeft = new THREE.GridHelper(this.scale, this.resolutions);
+        const gridHelperLeft = new THREE.GridHelper(this.scale, this.resolution);
         gridHelperLeft.rotation.z = Math.PI / 2;
         gridHelperLeft.position.x = -this.scale / 2;
-        const gridHelperBack = new THREE.GridHelper(this.scale, this.resolutions);
+        const gridHelperBack = new THREE.GridHelper(this.scale, this.resolution);
         gridHelperBack.rotation.x = Math.PI / 2;
         gridHelperBack.position.z = -this.scale / 2;
         this.scene.add(gridHelperBottom);
@@ -110,130 +69,168 @@ export class MarchingCubes2 {
         this.scene.add(gridHelperBack);
     }
 
-    cubeIndex(cube: Cube): number {
-        let cubeIndex = 0;
-
-        if (cube.values[0] < this.isolevel) cubeIndex |= 1;
-        if (cube.values[1] < this.isolevel) cubeIndex |= 2;
-        if (cube.values[2] < this.isolevel) cubeIndex |= 4;
-        if (cube.values[3] < this.isolevel) cubeIndex |= 8;
-        if (cube.values[4] < this.isolevel) cubeIndex |= 16;
-        if (cube.values[5] < this.isolevel) cubeIndex |= 32;
-        if (cube.values[6] < this.isolevel) cubeIndex |= 64;
-        if (cube.values[7] < this.isolevel) cubeIndex |= 128;
-
-        return cubeIndex;
-    }
-
-    intersectionPoints(cube: Cube, edges: number): Map<number,EdgeIntersection> {
-        // map of edge index to intersection point
-        const points: Map<number,EdgeIntersection> = new Map<number,EdgeIntersection>();
-
-        // bottom part of cube
-        if (edges & 1) {
-            points.set(0, new EdgeIntersection(cube.vertexInterp(0, 1, this.isolevel)));
-        }
-        if (edges & 2) {
-            points.set(1, new EdgeIntersection(cube.vertexInterp(1, 2, this.isolevel)));
-        }
-        if (edges & 4) {
-            points.set(2, new EdgeIntersection(cube.vertexInterp(2, 3, this.isolevel)));
-        }
-        if (edges & 8) {
-            points.set(3, new EdgeIntersection(cube.vertexInterp(3, 0, this.isolevel)));
-        }
-
-        // top part of cube
-        if (edges & 16) {
-            points.set(4, new EdgeIntersection(cube.vertexInterp(4, 5, this.isolevel)));
-        }
-        if (edges & 32) {
-            points.set(5, new EdgeIntersection(cube.vertexInterp(5, 6, this.isolevel)));
-        }
-        if (edges & 64) {
-            points.set(6, new EdgeIntersection(cube.vertexInterp(6, 7, this.isolevel)));
-        }
-        if (edges & 128) {
-            points.set(7, new EdgeIntersection(cube.vertexInterp(7, 4, this.isolevel)));
-        }
-
-        // vertical lines
-        if (edges & 256) {
-            points.set(8, new EdgeIntersection(cube.vertexInterp(0, 4, this.isolevel)));
-        }
-        if (edges & 512) {
-            points.set(9, new EdgeIntersection(cube.vertexInterp(1, 5, this.isolevel)));
-        }
-        if (edges & 1024) {
-            points.set(10, new EdgeIntersection(cube.vertexInterp(2, 6, this.isolevel)));
-        }
-        if (edges & 2048) {
-            points.set(11, new EdgeIntersection(cube.vertexInterp(3, 7, this.isolevel)));
-        }
-
-        return points;
-    }
-
-    addBallValues(center: THREE.Vector3, radius: number) {
-        for (const cube of this.cubes) {
-            let i = 0;
-            while (i < 8) {
-                const distance = radius - center.distanceTo(cube.vertices[i]);
-                cube.values[i] += Math.exp(- (distance * distance) );
-                i++;
-            }
-        }
-    }
-
-    cleanValues() {
-        for (const cube of this.cubes) {
-            for (let i = 0; i < 8; i++) {
-                cube.values[i] = 0;
-            }
-        }
-    }
-
     updateAndRender(delta: number) {
-        this.cleanValues();
-        for(const metaBall of this.metaBalls) {
-            this.addBallValues(metaBall.center, metaBall.radius);
+        for (let i = 0; i < this.values.length; i++) {
+            this.values[i] = 0;
+        }
+        for (const metaBall of this.metaBalls) {
+            for (let i = 0; i < this.points.length; i++) {
+                const distance = metaBall.radius - metaBall.center.distanceTo(this.points[i]);
+                this.values[i] += Math.exp(- (distance * distance) );
+            }
         }
 
-        let intersectPoints: EdgeIntersection[] = [];
+        var vlist = new Array(12);
+
+        const resolution2 = this.resolution * this.resolution;
+        const resolution3 = this.resolution * this.resolution * this.resolution;
+
         let trianglePoints: THREE.Vector3[] = [];
-        let vertexIndices: number[] = [];
-        let vertexIndex = 0;
 
-        for(const cube of this.cubes) {
-            let cubeIndex = this.cubeIndex(cube);
-            if (cubeIndex > 0 && cubeIndex < 255) {
-                // edges is a bitfield indicating which edges are crossed by the volume
-                const edges = edgeTable[cubeIndex];
-                // determine which edges are intersected by the volume and the intersection points
-                const intersectionPointsMap = this.intersectionPoints(cube, edges);
-                intersectPoints = intersectPoints.concat( Array.from(intersectionPointsMap.values()) );
+        for (var z = 0; z < this.resolution - 1; z++)
+        for (var y = 0; y < this.resolution - 1; y++)
+        for (var x = 0; x < this.resolution - 1; x++)
+        {
+            // indexes of points in the cube
+            var p    = x + this.resolution * y + resolution2 * z,
+            px   = p   + 1,
+            py   = p   + this.resolution,
+            pxy  = py  + 1,
+            pz   = p   + resolution2,
+            pxz  = px  + resolution2,
+            pyz  = py  + resolution2,
+            pxyz = pxy + resolution2;
 
-                // determine the triangles to render using triTable
-                cubeIndex <<= 4; // re-purpose cubeindex into an offset into triTable
-                let i = 0;
-                while( triTable[cubeIndex + i] != -1) {
-                    const i1 = triTable[cubeIndex + i];
-                    const i2 = triTable[cubeIndex + i + 1];
-                    const i3 = triTable[cubeIndex + i + 2];
+            // store scalar values corresponding to vertices
+            var value0 = this.values[ p    ],
+                value1 = this.values[ px   ],
+                value2 = this.values[ py   ],
+                value3 = this.values[ pxy  ],
+                value4 = this.values[ pz   ],
+                value5 = this.values[ pxz  ],
+                value6 = this.values[ pyz  ],
+                value7 = this.values[ pxyz ];
 
-                    trianglePoints.push(intersectionPointsMap.get(i3).point);
-                    trianglePoints.push(intersectionPointsMap.get(i2).point);
-                    trianglePoints.push(intersectionPointsMap.get(i1).point);
+            // place a "1" in bit positions corresponding to vertices whose
+		    //   isovalue is less than given constant.
+            var cubeindex = 0;
+            if ( value0 < this.isolevel ) cubeindex |= 1;
+            if ( value1 < this.isolevel ) cubeindex |= 2;
+            if ( value2 < this.isolevel ) cubeindex |= 8;
+            if ( value3 < this.isolevel ) cubeindex |= 4;
+            if ( value4 < this.isolevel ) cubeindex |= 16;
+            if ( value5 < this.isolevel ) cubeindex |= 32;
+            if ( value6 < this.isolevel ) cubeindex |= 128;
+            if ( value7 < this.isolevel ) cubeindex |= 64;
 
-                    vertexIndices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2);
-                    vertexIndex += 3;
-                    i += 3;
-                }
+            var cubeindex = 0;
+            if ( value0 < this.isolevel ) cubeindex |= 1;
+            if ( value1 < this.isolevel ) cubeindex |= 2;
+            if ( value2 < this.isolevel ) cubeindex |= 8;
+            if ( value3 < this.isolevel ) cubeindex |= 4;
+            if ( value4 < this.isolevel ) cubeindex |= 16;
+            if ( value5 < this.isolevel ) cubeindex |= 32;
+            if ( value6 < this.isolevel ) cubeindex |= 128;
+            if ( value7 < this.isolevel ) cubeindex |= 64;
+
+            // bits = 12 bit number, indicates which edges are crossed by the isosurface
+            var bits = edgeTable[ cubeindex ];
+
+            // if none are crossed, proceed to next iteration
+            if ( bits === 0 ) continue;
+
+            // check which edges are crossed, and estimate the point location
+            //    using a weighted average of scalar values at edge endpoints.
+            // store the vertex in an array for use later.
+            var mu = 0.5;
+
+            // bottom of the cube
+            if ( bits & 1 )
+            {		
+                mu = ( this.isolevel - value0 ) / ( value1 - value0 );
+                vlist[0] = this.points[p].clone().lerp( this.points[px], mu );
+            }
+            if ( bits & 2 )
+            {
+                mu = ( this.isolevel - value1 ) / ( value3 - value1 );
+                vlist[1] = this.points[px].clone().lerp( this.points[pxy], mu );
+            }
+            if ( bits & 4 )
+            {
+                mu = ( this.isolevel - value2 ) / ( value3 - value2 );
+                vlist[2] = this.points[py].clone().lerp( this.points[pxy], mu );
+            }
+            if ( bits & 8 )
+            {
+                mu = ( this.isolevel - value0 ) / ( value2 - value0 );
+                vlist[3] = this.points[p].clone().lerp( this.points[py], mu );
+            }
+            // top of the cube
+            if ( bits & 16 )
+            {
+                mu = ( this.isolevel - value4 ) / ( value5 - value4 );
+                vlist[4] = this.points[pz].clone().lerp( this.points[pxz], mu );
+            }
+            if ( bits & 32 )
+            {
+                mu = ( this.isolevel - value5 ) / ( value7 - value5 );
+                vlist[5] = this.points[pxz].clone().lerp( this.points[pxyz], mu );
+            }
+            if ( bits & 64 )
+            {
+                mu = ( this.isolevel - value6 ) / ( value7 - value6 );
+                vlist[6] = this.points[pyz].clone().lerp( this.points[pxyz], mu );
+            }
+            if ( bits & 128 )
+            {
+                mu = ( this.isolevel - value4 ) / ( value6 - value4 );
+                vlist[7] = this.points[pz].clone().lerp( this.points[pyz], mu );
+            }
+            // vertical lines of the cube
+            if ( bits & 256 )
+            {
+                mu = ( this.isolevel - value0 ) / ( value4 - value0 );
+                vlist[8] = this.points[p].clone().lerp( this.points[pz], mu );
+            }
+            if ( bits & 512 )
+            {
+                mu = ( this.isolevel - value1 ) / ( value5 - value1 );
+                vlist[9] = this.points[px].clone().lerp( this.points[pxz], mu );
+            }
+            if ( bits & 1024 )
+            {
+                mu = ( this.isolevel - value3 ) / ( value7 - value3 );
+                vlist[10] = this.points[pxy].clone().lerp( this.points[pxyz], mu );
+            }
+            if ( bits & 2048 )
+            {
+                mu = ( this.isolevel - value2 ) / ( value6 - value2 );
+                vlist[11] = this.points[py].clone().lerp( this.points[pyz], mu );
+            }
+
+            // construct triangles -- get correct vertices from triTable.
+            var i = 0;
+            cubeindex <<= 4;  // multiply by 16... 
+            // "Re-purpose cubeindex into an offset into triTable." 
+            //  since each row really isn't a row.
+
+            // the while loop should run at most 5 times,
+            //   since the 16th entry in each row is a -1.
+            while ( triTable[ cubeindex + i ] != -1 ) 
+            {
+                var index1 = triTable[cubeindex + i];
+                var index2 = triTable[cubeindex + i + 1];
+                var index3 = triTable[cubeindex + i + 2];
                 
+                trianglePoints.push( vlist[index1].clone() );
+                trianglePoints.push( vlist[index2].clone() );
+                trianglePoints.push( vlist[index3].clone() );
+
+                i += 3;
             }
         }
 
         // this.pointsMeshRenderer.updatePoints(intersectPoints);
-        this.meshRenderer.updateMesh(trianglePoints, vertexIndices);
+        this.meshRenderer.updateMesh(trianglePoints);
     }
 }

@@ -1,31 +1,4 @@
 import * as THREE from 'three';
-import { EdgeIntersection } from './MarchingCubes2';
-
-export class PointsRenderer {
-
-    pointsBufferGeometry: THREE.BufferGeometry;
-
-    constructor(scene: THREE.Scene) {
-        this.pointsBufferGeometry = new THREE.BufferGeometry();
-        this.pointsBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( [], 3 ) );
-        const pointsMaterial = new THREE.PointsMaterial( { color: 0xffffff } );
-        const points = new THREE.Points( this.pointsBufferGeometry, pointsMaterial );
-        scene.add( points );
-    }
-
-    updatePoints(intersectPoints: EdgeIntersection[]) {
-        const vertices = [];
-        for (const intersectPoint of intersectPoints) {
-            const x = intersectPoint.point.x;
-            const y = intersectPoint.point.y;
-            const z = intersectPoint.point.z;
-        
-            vertices.push( x, y, z );
-        }
-        this.pointsBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-    }
-
-}
 
 export class MeshRenderer {
             
@@ -40,7 +13,7 @@ export class MeshRenderer {
         scene.add( mesh );
     }
 
-    updateMesh(trianglePoints: THREE.Vector3[], vertexIndices: number[]) {
+    updateMesh(trianglePoints: THREE.Vector3[]) {
         const vertices = [];
         for (const intersectPoint of trianglePoints) {
             const x = intersectPoint.x;
@@ -49,9 +22,9 @@ export class MeshRenderer {
         
             vertices.push( x, y, z );
         }
-
-        this.meshBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-        this.meshBufferGeometry.setIndex( vertexIndices );
+        const positionAttribute = new THREE.Float32BufferAttribute( vertices, 3 );
+        positionAttribute.setUsage( THREE.DynamicDrawUsage );
+        this.meshBufferGeometry.setAttribute( 'position',  positionAttribute);
         this.meshBufferGeometry.computeVertexNormals();
     }
 }
