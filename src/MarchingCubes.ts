@@ -15,7 +15,7 @@ export class MetaBall {
 
 }
 
-export class MarchingCubes2 {
+export class MarchingCubes {
 
     scene: THREE.Scene;
     resolution: number;
@@ -52,6 +52,7 @@ export class MarchingCubes2 {
         for (var i = 0; i < total; i++) 
 		    this.values[i] = 0;
 
+        // create the triangles renderer
         this.meshRenderer = new MeshRenderer(scene);
     }
 
@@ -70,20 +71,23 @@ export class MarchingCubes2 {
     }
 
     marchingCubes() {
+        // reset all values to 0
         for (let i = 0; i < this.values.length; i++) {
             this.values[i] = 0;
         }
+        // add values using the metaball approximation function
         for (const metaBall of this.metaBalls) {
             for (let i = 0; i < this.points.length; i++) {
+                // meta ball function
                 const distance = metaBall.radius - metaBall.center.distanceTo(this.points[i]);
                 this.values[i] += Math.exp(- (distance * distance) );
             }
         }
 
+        // list containing intersection points
         var vlist = new Array(12);
 
         const resolution2 = this.resolution * this.resolution;
-        const resolution3 = this.resolution * this.resolution * this.resolution;
 
         let trianglePoints: THREE.Vector3[] = [];
 
@@ -230,7 +234,6 @@ export class MarchingCubes2 {
             }
         }
 
-        // this.pointsMeshRenderer.updatePoints(intersectPoints);
         this.meshRenderer.updateMesh(trianglePoints);
     }
 }

@@ -1,9 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
-import { ToonShader1, ToonShader2, ToonShaderHatching, ToonShaderDotted } from 'three/examples/jsm/shaders/ToonShader.js';
-import { MarchingCubes } from './MarchingCubes';
-import { MarchingCubes2, MetaBall } from './MarchingCubes2';
+import { MarchingCubes, MetaBall } from './MarchingCubes';
 
 let container;
 
@@ -19,7 +17,7 @@ let container;
 
 		let time = 0;
 
-		let marchingCubes2;
+		let marchingCubes;
 		const metaball1 = new MetaBall(new THREE.Vector3(-3, 1, 0), 0.2);
 		const metaball2 = new MetaBall(new THREE.Vector3(2, 0, 0), 0.5);
 		const metaball3 = new MetaBall(new THREE.Vector3(2, 0, -2), 0.25);
@@ -56,27 +54,11 @@ let container;
 			ambientLight = new THREE.AmbientLight( 0x323232 );
 			scene.add( ambientLight );
 
-			// MATERIALS
-
-			materials = generateMaterials();
-			current_material = 'matte';
-
 			// MARCHING CUBES
-			marchingCubes2 = new MarchingCubes2(scene, 30, 10, 0.5);
-			marchingCubes2.metaBalls.push(metaball1);
-			marchingCubes2.metaBalls.push(metaball2);
-			marchingCubes2.metaBalls.push(metaball3);
-
-			resolution = 28;
-
-			effect = new MarchingCubes( resolution, materials[ current_material ], true, true, 100000 );
-			effect.position.set( 0, 0, 0 );
-			effect.scale.set( 700, 700, 700 );
-
-			effect.enableUvs = false;
-			effect.enableColors = false;
-
-			scene.add( effect );
+			marchingCubes = new MarchingCubes(scene, 30, 10, 0.5);
+			marchingCubes.metaBalls.push(metaball1);
+			marchingCubes.metaBalls.push(metaball2);
+			marchingCubes.metaBalls.push(metaball3);
 
 			// RENDERER
 
@@ -109,74 +91,6 @@ let container;
 			camera.updateProjectionMatrix();
 
 			renderer.setSize( window.innerWidth, window.innerHeight );
-
-		}
-
-		function generateMaterials() {
-
-			// environment map
-
-			// const path = 'textures/cube/SwedishRoyalCastle/';
-			// const format = '.jpg';
-			// const urls = [
-			// 	path + 'px' + format, path + 'nx' + format,
-			// 	path + 'py' + format, path + 'ny' + format,
-			// 	path + 'pz' + format, path + 'nz' + format
-			// ];
-
-			// const cubeTextureLoader = new THREE.CubeTextureLoader();
-
-			// const reflectionCube = cubeTextureLoader.load( urls );
-			// const refractionCube = cubeTextureLoader.load( urls );
-			// refractionCube.mapping = THREE.CubeRefractionMapping;
-
-			// toons
-
-			const toonMaterial1 = createShaderMaterial( ToonShader1, light, ambientLight );
-			const toonMaterial2 = createShaderMaterial( ToonShader2, light, ambientLight );
-			const hatchingMaterial = createShaderMaterial( ToonShaderHatching, light, ambientLight );
-			const dottedMaterial = createShaderMaterial( ToonShaderDotted, light, ambientLight );
-
-			// const texture = new THREE.TextureLoader().load( 'textures/uv_grid_opengl.jpg' );
-			// texture.wrapS = THREE.RepeatWrapping;
-			// texture.wrapT = THREE.RepeatWrapping;
-            // texture.colorSpace = THREE.SRGBColorSpace;
-
-			const materials = {
-				// 'shiny': new THREE.MeshStandardMaterial( { color: 0x9c0000, /** envMap: reflectionCube, */ roughness: 0.1, metalness: 1.0 } ),
-				// 'chrome': new THREE.MeshLambertMaterial( { color: 0xffffff, /** envMap: reflectionCube */ } ),
-				// 'liquid': new THREE.MeshLambertMaterial( { color: 0xffffff, /** envMap: refractionCube, */ refractionRatio: 0.85 } ),
-				'matte': new THREE.MeshPhongMaterial( { specular: 0x494949, shininess: 1 } ),
-				// 'flat': new THREE.MeshLambertMaterial( { /*TODO flatShading: true */ } ),
-				// 'textured': new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 1, } ),
-				'colors': new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0xffffff, shininess: 2, vertexColors: true } ),
-				'multiColors': new THREE.MeshPhongMaterial( { shininess: 2, vertexColors: true } ),
-				'plastic': new THREE.MeshPhongMaterial( { specular: 0xc1c1c1, shininess: 250 } ),
-				'toon1': toonMaterial1,
-				'toon2': toonMaterial2,
-				'hatching': hatchingMaterial,
-				'dotted': dottedMaterial
-			};
-
-			return materials;
-
-		}
-
-		function createShaderMaterial( shader, light, ambientLight ) {
-
-			const u = THREE.UniformsUtils.clone( shader.uniforms );
-
-			const vs = shader.vertexShader;
-			const fs = shader.fragmentShader;
-
-			const material = new THREE.ShaderMaterial( { uniforms: u, vertexShader: vs, fragmentShader: fs } );
-
-			material.uniforms[ 'uDirLightPos' ].value = light.position;
-			material.uniforms[ 'uDirLightColor' ].value = light.color;
-
-			material.uniforms[ 'uAmbientLightColor' ].value = ambientLight.color;
-
-			return material;
 
 		}
 
@@ -245,51 +159,6 @@ let container;
 
 		}
 
-		// this controls content of marching cubes voxel field
-
-		function updateCubes( object, time, numblobs, floor, wallx, wallz ) {
-
-			object.reset();
-
-			// fill the field with some metaballs
-
-			const rainbow = [
-				new THREE.Color( 0xff0000 ),
-				new THREE.Color( 0xffbb00 ),
-				new THREE.Color( 0xffff00 ),
-				new THREE.Color( 0x00ff00 ),
-				new THREE.Color( 0x0000ff ),
-				new THREE.Color( 0x9400bd ),
-				new THREE.Color( 0xc800eb )
-			];
-			const subtract = 12;
-			const strength = 1.2 / ( ( Math.sqrt( numblobs ) - 1 ) / 4 + 1 );
-
-			for ( let i = 0; i < numblobs; i ++ ) {
-
-				const ballx = Math.sin( i + 1.26 * time * ( 1.03 + 0.5 * Math.cos( 0.21 * i ) ) ) * 0.27 + 0.5;
-				const bally = Math.abs( Math.cos( i + 1.12 * time * Math.cos( 1.22 + 0.1424 * i ) ) ) * 0.77; // dip into the floor
-				const ballz = Math.cos( i + 1.32 * time * 0.1 * Math.sin( ( 0.92 + 0.53 * i ) ) ) * 0.27 + 0.5;
-
-				if ( current_material === 'multiColors' ) {
-
-					object.addBall( ballx, bally, ballz, strength, subtract, rainbow[ i % 7 ] );
-
-				} else {
-
-					object.addBall( ballx, bally, ballz, strength, subtract );
-
-				}
-
-			}
-
-			if ( floor ) object.addPlaneY( 2, 12 );
-			if ( wallz ) object.addPlaneZ( 2, 12 );
-			if ( wallx ) object.addPlaneX( 2, 12 );
-
-			object.update();
-
-		}
 
 		//
 
@@ -311,26 +180,7 @@ let container;
 			metaball2.center.y = Math.cos(time) * 2;
 
 			// marching cubes 2
-			marchingCubes2.marchingCubes();
-
-			// marching cubes
-
-			// if ( effectController.resolution !== resolution ) {
-
-			// 	resolution = effectController.resolution;
-			// 	effect.init( Math.floor( resolution ) );
-
-			// }
-
-			// if ( effectController.isolation !== effect.isolation ) {
-
-			// 	effect.isolation = effectController.isolation;
-
-			// }
-
-			// updateCubes( effect, time, effectController.numBlobs, effectController.floor, effectController.wallx, effectController.wallz );
-
-			// render
+			marchingCubes.marchingCubes();
 
 			renderer.render( scene, camera );
 
