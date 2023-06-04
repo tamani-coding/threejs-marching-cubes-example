@@ -45,11 +45,11 @@ let container;
 
 			// LIGHTS
 
-			light = new THREE.DirectionalLight( 0xffffff );
+			light = new THREE.DirectionalLight( 0xB70404 );
 			light.position.set( 0.5, 0.5, 1 );
 			scene.add( light );
 
-			pointLight = new THREE.PointLight( 0xff7c00 );
+			pointLight = new THREE.PointLight( 0xF79327 );
 			pointLight.position.set( 0, 0, 100 );
 			scene.add( pointLight );
 
