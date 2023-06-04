@@ -69,7 +69,7 @@ export class MarchingCubes2 {
         this.scene.add(gridHelperBack);
     }
 
-    updateAndRender(delta: number) {
+    marchingCubes() {
         for (let i = 0; i < this.values.length; i++) {
             this.values[i] = 0;
         }

@@ -311,7 +311,7 @@ let container;
 			metaball2.center.y = Math.cos(time) * 2;
 
 			// marching cubes 2
-			marchingCubes2.updateAndRender(delta);
+			marchingCubes2.marchingCubes();
 
 			// marching cubes
 
