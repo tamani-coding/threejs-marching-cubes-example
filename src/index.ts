@@ -11,8 +11,6 @@ let container;
 
 		let light, pointLight, ambientLight;
 
-		let effect, resolution;
-
 		let effectController;
 
 		let time = 0;
@@ -98,32 +96,10 @@ let container;
 
 		function setupGui() {
 
-			const createHandler = function ( id ) {
-
-				return function () {
-
-					current_material = id;
-
-					effect.material = materials[ id ];
-					effect.enableUvs = ( current_material === 'textured' ) ? true : false;
-					effect.enableColors = ( current_material === 'colors' || current_material === 'multiColors' ) ? true : false;
-
-				};
-
-			};
 
 			effectController = {
 
-				material: 'shiny',
-
 				speed: 2.0,
-				numBlobs: 10,
-				resolution: 28,
-				isolation: 80,
-
-				floor: true,
-				wallx: false,
-				wallz: false,
 
 				dummy: function () {}
 
@@ -133,29 +109,11 @@ let container;
 
 			const gui = new GUI();
 
-			// material (type)
-
-			h = gui.addFolder( 'Materials' );
-
-			for ( const m in materials ) {
-
-				effectController[ m ] = createHandler( m );
-				h.add( effectController, m ).name( m );
-
-			}
-
 			// simulation
 
 			h = gui.addFolder( 'Simulation' );
 
 			h.add( effectController, 'speed', 0.1, 8.0, 0.05 );
-			h.add( effectController, 'numBlobs', 1, 50, 1 );
-			h.add( effectController, 'resolution', 14, 100, 1 );
-			h.add( effectController, 'isolation', 10, 300, 1 );
-
-			h.add( effectController, 'floor' );
-			h.add( effectController, 'wallx' );
-			h.add( effectController, 'wallz' );
 
 		}
 
