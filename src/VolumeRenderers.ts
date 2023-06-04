@@ -26,5 +26,7 @@ export class MeshRenderer {
         positionAttribute.setUsage( THREE.DynamicDrawUsage );
         this.meshBufferGeometry.setAttribute( 'position',  positionAttribute);
         this.meshBufferGeometry.computeVertexNormals();
+        this.meshBufferGeometry.getAttribute( 'position' ).needsUpdate = true;
+        this.meshBufferGeometry.getAttribute( 'normal' ).needsUpdate = true;
     }
 }
