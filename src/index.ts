@@ -7,8 +7,6 @@ let container;
 
 		let camera, scene, renderer;
 
-		let materials, current_material;
-
 		let light, pointLight, ambientLight;
 
 		let effectController;
