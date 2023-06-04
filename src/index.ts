@@ -3,8 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
 import { ToonShader1, ToonShader2, ToonShaderHatching, ToonShaderDotted } from 'three/examples/jsm/shaders/ToonShader.js';
 import { MarchingCubes } from './MarchingCubes';
-import { MarchingCubes2 } from './MarchingCubes2';
-import { SphereVolume } from './Volumes';
+import { MarchingCubes2, MetaBall } from './MarchingCubes2';
 
 let container;
 
@@ -21,7 +20,9 @@ let container;
 		let time = 0;
 
 		let marchingCubes2;
-		const spheres: SphereVolume[] = [];
+		const metaball1 = new MetaBall(new THREE.Vector3(-3, 1, 0), 0.2);
+		const metaball2 = new MetaBall(new THREE.Vector3(2, 0, 0), 0.5);
+		const metaball3 = new MetaBall(new THREE.Vector3(2, 0, -2), 0.25);
 
 		const clock = new THREE.Clock();
 
@@ -35,12 +36,12 @@ let container;
 			// CAMERA
 
 			camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-			camera.position.set( 0, 500, 1500 );
+			camera.position.set( 0, 5, 10 );
 
 			// SCENE
 
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( 0x050505 );
+			scene.background = new THREE.Color( 0x4F709C );
 
 			// LIGHTS
 
@@ -61,11 +62,10 @@ let container;
 			current_material = 'matte';
 
 			// MARCHING CUBES
-
-			spheres.push(new SphereVolume(new THREE.Vector3(0, 0, 0), 150));
-			spheres.push(new SphereVolume(new THREE.Vector3(0, 0, 0), 150));
-			marchingCubes2 = new MarchingCubes2(scene, 35, 1000);
-			spheres.forEach(blob => marchingCubes2.addVolume(blob));
+			marchingCubes2 = new MarchingCubes2(scene, 30, 10, 0.5);
+			marchingCubes2.metaBalls.push(metaball1);
+			marchingCubes2.metaBalls.push(metaball2);
+			marchingCubes2.metaBalls.push(metaball3);
 
 			resolution = 28;
 
@@ -88,8 +88,8 @@ let container;
 			// CONTROLS
 
 			const controls = new OrbitControls( camera, renderer.domElement );
-			controls.minDistance = 500;
-			controls.maxDistance = 5000;
+			controls.minDistance = 1.5;
+			controls.maxDistance = 40;
 
 			// GUI
 
@@ -202,7 +202,7 @@ let container;
 
 				material: 'shiny',
 
-				speed: 1.0,
+				speed: 2.0,
 				numBlobs: 10,
 				resolution: 28,
 				isolation: 80,
@@ -307,12 +307,7 @@ let container;
 
 			time += delta * effectController.speed * 0.5;
 
-			const blob1 = spheres[0];
-			blob1.position.x = Math.sin(time) * 200;
-			blob1.position.y = Math.cos(time) * 200;
-			const blob2 = spheres[1];
-			blob2.position.x = Math.cos(time) * 200;
-			blob2.position.y = Math.sin(time) * 200;
+			metaball2.center.x = Math.sin(time) * 2;
 
 			// marching cubes 2
 			marchingCubes2.updateAndRender(delta);

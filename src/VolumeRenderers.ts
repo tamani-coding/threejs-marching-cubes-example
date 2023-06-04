@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { EdgeIntersection } from './MarchingCubes2';
 
-export class PointsMeshRenderer {
+export class PointsRenderer {
 
     pointsBufferGeometry: THREE.BufferGeometry;
 
@@ -40,7 +40,7 @@ export class MeshRenderer {
         scene.add( mesh );
     }
 
-    updateMesh(trianglePoints: THREE.Vector3[]) {
+    updateMesh(trianglePoints: THREE.Vector3[], vertexIndices: number[]) {
         const vertices = [];
         for (const intersectPoint of trianglePoints) {
             const x = intersectPoint.x;
@@ -52,7 +52,8 @@ export class MeshRenderer {
 
         const attributes = new THREE.Float32BufferAttribute( vertices, 3 );
         attributes.setUsage( THREE.DynamicDrawUsage );
-        this.meshBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+        this.meshBufferGeometry.setAttribute( 'position', attributes );
+        this.meshBufferGeometry.setIndex( vertexIndices );
         this.meshBufferGeometry.computeVertexNormals();
     }
 }
