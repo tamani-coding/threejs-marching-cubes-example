@@ -50,9 +50,7 @@ export class MeshRenderer {
             vertices.push( x, y, z );
         }
 
-        const attributes = new THREE.Float32BufferAttribute( vertices, 3 );
-        attributes.setUsage( THREE.DynamicDrawUsage );
-        this.meshBufferGeometry.setAttribute( 'position', attributes );
+        this.meshBufferGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
         this.meshBufferGeometry.setIndex( vertexIndices );
         this.meshBufferGeometry.computeVertexNormals();
     }

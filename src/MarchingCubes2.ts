@@ -178,8 +178,8 @@ export class MarchingCubes2 {
         for (const cube of this.cubes) {
             let i = 0;
             while (i < 8) {
-                const radMinusD2 = radius - center.distanceTo(cube.vertices[i]);
-                cube.values[i] += Math.exp(- (radMinusD2 * radMinusD2) );
+                const distance = radius - center.distanceTo(cube.vertices[i]);
+                cube.values[i] += Math.exp(- (distance * distance) );
                 i++;
             }
         }

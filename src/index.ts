@@ -308,6 +308,7 @@ let container;
 			time += delta * effectController.speed * 0.5;
 
 			metaball2.center.x = Math.sin(time) * 2;
+			metaball2.center.y = Math.cos(time) * 2;
 
 			// marching cubes 2
 			marchingCubes2.updateAndRender(delta);
