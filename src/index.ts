@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
-import { MarchingCubes, MetaBall } from './MarchingCubes';
+import { marchingCubes, metaBalls } from './MarchingCubes';
 
 let container;
 
@@ -13,12 +13,40 @@ let container;
 
 		let time = 0;
 
-		let marchingCubes;
-		const metaball1 = new MetaBall(new THREE.Vector3(-3, 1, 0), 0.2);
-		const metaball2 = new MetaBall(new THREE.Vector3(2, 0, 0), 0.5);
-		const metaball3 = new MetaBall(new THREE.Vector3(2, 0, -2), 0.25);
-
 		const clock = new THREE.Clock();
+
+			// BUFFER GEOMETRY
+
+			const maxPolygons = 30000;
+			const vertices = Array(3 * maxPolygons).fill(0);
+
+			const meshBufferGeometry = new THREE.BufferGeometry();
+			const buffer = new THREE.Float32BufferAttribute( vertices, 3 );
+			buffer.setUsage( THREE.DynamicDrawUsage );
+			meshBufferGeometry.setAttribute( 'position', buffer );
+
+			const mesh = new THREE.Mesh( meshBufferGeometry, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
+			mesh.castShadow = true;
+			mesh.receiveShadow = true;
+
+			function updateMesh(trianglePoints: THREE.Vector3[]) {
+				for (let i = 0; i < trianglePoints.length; i++) {
+					const x = trianglePoints[i].x;
+					const y = trianglePoints[i].y;
+					const z = trianglePoints[i].z;
+				
+					vertices[i * 3    ] = x;
+					vertices[i * 3 + 1] = y;
+					vertices[i * 3 + 2] = z;
+				}
+				const positionAttribute = new THREE.Float32BufferAttribute( vertices, 3 );
+				positionAttribute.setUsage( THREE.DynamicDrawUsage );
+				meshBufferGeometry.setAttribute( 'position',  positionAttribute);
+				meshBufferGeometry.setDrawRange( 0, trianglePoints.length);
+				meshBufferGeometry.computeVertexNormals();
+				meshBufferGeometry.getAttribute( 'position' ).needsUpdate = true;
+				meshBufferGeometry.getAttribute( 'normal' ).needsUpdate = true;
+			}
 
 		init();
 		animate();
@@ -37,6 +65,8 @@ let container;
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color( 0x4F709C );
 
+			scene.add( mesh );
+
 			// LIGHTS
 
 			light = new THREE.DirectionalLight( 0xB70404 );
@@ -49,12 +79,6 @@ let container;
 
 			ambientLight = new THREE.AmbientLight( 0x323232 );
 			scene.add( ambientLight );
-
-			// MARCHING CUBES
-			marchingCubes = new MarchingCubes(scene, 30, 10, 0.5);
-			marchingCubes.metaBalls.push(metaball1);
-			marchingCubes.metaBalls.push(metaball2);
-			marchingCubes.metaBalls.push(metaball3);
 
 			// RENDERER
 
@@ -115,7 +139,6 @@ let container;
 
 		}
 
-
 		//
 
 		function animate() {
@@ -132,11 +155,12 @@ let container;
 
 			time += delta * effectController.speed * 0.5;
 
-			metaball2.center.x = Math.sin(time) * 2;
-			metaball2.center.y = Math.cos(time) * 2;
+			metaBalls[1].center.x = Math.sin(time) * 2;
+			metaBalls[1].center.y = Math.cos(time) * 2;
 
 			// marching cubes 2
-			marchingCubes.marchingCubes();
+			const triangles = marchingCubes();
+			updateMesh(triangles);
 
 			renderer.render( scene, camera );
 
