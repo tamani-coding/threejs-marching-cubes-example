@@ -15,38 +15,38 @@ let container;
 
 		const clock = new THREE.Clock();
 
-			// BUFFER GEOMETRY
+		// BUFFER GEOMETRY
 
-			const maxPolygons = 30000;
-			const vertices = Array(3 * maxPolygons).fill(0);
+		const maxPolygons = 30000;
+		const vertices = Array(3 * maxPolygons).fill(0);
 
-			const meshBufferGeometry = new THREE.BufferGeometry();
-			const buffer = new THREE.Float32BufferAttribute( vertices, 3 );
-			buffer.setUsage( THREE.DynamicDrawUsage );
-			meshBufferGeometry.setAttribute( 'position', buffer );
+		const meshBufferGeometry = new THREE.BufferGeometry();
+		const buffer = new THREE.Float32BufferAttribute( vertices, 3 );
+		buffer.setUsage( THREE.DynamicDrawUsage );
+		meshBufferGeometry.setAttribute( 'position', buffer );
 
-			const mesh = new THREE.Mesh( meshBufferGeometry, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
-			mesh.castShadow = true;
-			mesh.receiveShadow = true;
+		const mesh = new THREE.Mesh( meshBufferGeometry, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
+		mesh.castShadow = true;
+		mesh.receiveShadow = true;
 
-			function updateMesh(trianglePoints: THREE.Vector3[]) {
-				for (let i = 0; i < trianglePoints.length; i++) {
-					const x = trianglePoints[i].x;
-					const y = trianglePoints[i].y;
-					const z = trianglePoints[i].z;
-				
-					vertices[i * 3    ] = x;
-					vertices[i * 3 + 1] = y;
-					vertices[i * 3 + 2] = z;
-				}
-				const positionAttribute = new THREE.Float32BufferAttribute( vertices, 3 );
-				positionAttribute.setUsage( THREE.DynamicDrawUsage );
-				meshBufferGeometry.setAttribute( 'position',  positionAttribute);
-				meshBufferGeometry.setDrawRange( 0, trianglePoints.length);
-				meshBufferGeometry.computeVertexNormals();
-				meshBufferGeometry.getAttribute( 'position' ).needsUpdate = true;
-				meshBufferGeometry.getAttribute( 'normal' ).needsUpdate = true;
+		function updateMesh(trianglePoints: THREE.Vector3[]) {
+			for (let i = 0; i < trianglePoints.length; i++) {
+				const x = trianglePoints[i].x;
+				const y = trianglePoints[i].y;
+				const z = trianglePoints[i].z;
+			
+				vertices[i * 3    ] = x;
+				vertices[i * 3 + 1] = y;
+				vertices[i * 3 + 2] = z;
 			}
+			const positionAttribute = new THREE.Float32BufferAttribute( vertices, 3 );
+			positionAttribute.setUsage( THREE.DynamicDrawUsage );
+			meshBufferGeometry.setAttribute( 'position',  positionAttribute);
+			meshBufferGeometry.setDrawRange( 0, trianglePoints.length);
+			meshBufferGeometry.computeVertexNormals();
+			meshBufferGeometry.getAttribute( 'position' ).needsUpdate = true;
+			meshBufferGeometry.getAttribute( 'normal' ).needsUpdate = true;
+		}
 
 		init();
 		animate();
