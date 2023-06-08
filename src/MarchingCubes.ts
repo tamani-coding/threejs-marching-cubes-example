@@ -127,16 +127,6 @@ export class MarchingCubes {
             if ( value6 < this.isolevel ) cubeindex |= 128;
             if ( value7 < this.isolevel ) cubeindex |= 64;
 
-            var cubeindex = 0;
-            if ( value0 < this.isolevel ) cubeindex |= 1;
-            if ( value1 < this.isolevel ) cubeindex |= 2;
-            if ( value2 < this.isolevel ) cubeindex |= 8;
-            if ( value3 < this.isolevel ) cubeindex |= 4;
-            if ( value4 < this.isolevel ) cubeindex |= 16;
-            if ( value5 < this.isolevel ) cubeindex |= 32;
-            if ( value6 < this.isolevel ) cubeindex |= 128;
-            if ( value7 < this.isolevel ) cubeindex |= 64;
-
             // bits = 12 bit number, indicates which edges are crossed by the isosurface
             var bits = edgeTable[ cubeindex ];
 
